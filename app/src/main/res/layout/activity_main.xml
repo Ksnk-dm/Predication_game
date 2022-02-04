@@ -35,6 +35,13 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/timer_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="TextView" />
         </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
