@@ -2,6 +2,7 @@ package com.ksnk.predictions
 
 
 import android.app.Notification
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -13,6 +14,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
@@ -257,6 +259,7 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
         val sharedPreference = getSharedPreferences("PREFERENCE_NAME", Context.MODE_PRIVATE)
         var editor = sharedPreference.edit()
         editor.putInt("count", count).apply()
+
     }
 
     private fun createAlertDialog(userDao: PredicationDao, editor: SharedPreferences.Editor) {

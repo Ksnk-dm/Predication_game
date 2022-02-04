@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 
@@ -40,12 +41,12 @@ class CountdownTimerService : Service() {
             notificationIntent, PendingIntent.FLAG_IMMUTABLE
         )
         val notification: Notification = Notification.Builder(this,channelId)
-            .setCategory(Notification.CATEGORY_SERVICE)
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setPriority(Notification.PRIORITY_MIN)
             .setContentIntent(pendingIntent).build()
-        startForeground(101, notification)
-        val notificationManager =
-            applicationContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(101)
+        startForeground(101, null)
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(101);
         return START_NOT_STICKY
     }
 
@@ -57,6 +58,8 @@ class CountdownTimerService : Service() {
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         service.createNotificationChannel(chan)
+
+
         return channelId
     }
 
