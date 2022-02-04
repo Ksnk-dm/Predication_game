@@ -16,14 +16,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.ksnk.predictions.dao.PredicationDao
-import java.text.SimpleDateFormat
+
 
 
 import java.util.*
 import com.ksnk.predictions.entity.Predication as Predication1
-import com.google.android.gms.ads.initialization.InitializationStatus
 
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
 
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.LoadAdError
@@ -34,10 +32,6 @@ import com.google.android.gms.ads.rewarded.RewardItem
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
-import android.widget.Toast
-
-
-
 
 
 class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
@@ -86,7 +80,7 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
 
     )
 
-    private var rewardedInterstitialAd: RewardedInterstitialAd? =null
+    private var rewardedInterstitialAd: RewardedInterstitialAd? = null
 
     private fun initFirstStart(
         userDao: PredicationDao,
@@ -113,7 +107,7 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
             count = 1
             editor.putInt("count", count).apply()
             predicationImageView1?.visibility = View.VISIBLE
-            countTextView?.text=count.toString()
+            countTextView?.text = count.toString()
         }
     }
 
@@ -123,7 +117,10 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
 
             // Load an ad.
             RewardedInterstitialAd.load(
-                this, "ca-app-pub-2981423664535117/9800122375", adRequest, object : RewardedInterstitialAdLoadCallback() {
+                this,
+                "ca-app-pub-2981423664535117/9800122375",
+                adRequest,
+                object : RewardedInterstitialAdLoadCallback() {
                     override fun onAdFailedToLoad(adError: LoadAdError) {
                         super.onAdFailedToLoad(adError)
                         rewardedInterstitialAd = null
@@ -137,11 +134,12 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
         }
     }
 
-    private fun showAdsDialog(){
-       showAdNow()
+    private fun showAdsDialog() {
+        showAdNow()
     }
+
     private fun showAdNow() {
-            rewardedInterstitialAd!!.show(this@MainActivity, this@MainActivity)
+        rewardedInterstitialAd!!.show(this@MainActivity, this@MainActivity)
     }
 
 
@@ -257,5 +255,4 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
             predicationImageView1?.visibility = View.VISIBLE
         }
     }
-
 }
