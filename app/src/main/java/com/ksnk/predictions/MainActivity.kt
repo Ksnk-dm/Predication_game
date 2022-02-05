@@ -24,38 +24,39 @@ import com.ksnk.predictions.entity.Predication as Predication1
 
 
 class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
+    private val firstStart = "firstStart"
+    private val preferenceName = "preference_base"
+    private val rewardAdsId = "ca-app-pub-3940256099942544/5354046379"
+    private val interestingAdsId = "ca-app-pub-3940256099942544/1033173712"
     private var predicationImageView1: ImageView? = null
     private var predicationImageView2: ImageView? = null
     private var predicationImageView3: ImageView? = null
     private var countTextView: TextView? = null
     private var plusTextView: TextView? = null
     private var count = 3
-    private var countTemp = 0
     private var mInterstitialAd: InterstitialAd? = null
-    private final var TAG = "MainActivity"
-    lateinit var mAdView : AdView
-    var statusFirstRun = true
-
+    private var sharedPreferences: SharedPreferences? = null
+    private var editorPreferences: SharedPreferences.Editor? = null
+    lateinit var mAdView: AdView
+    private var statusFirstRun = true
+    private var predicationDao: PredicationDao? = null
 
     private var rewardedInterstitialAd: RewardedInterstitialAd? = null
 
-    private fun initFirstStart(
-        userDao: PredicationDao,
-        statusFirstRun: Boolean,
-        editor: SharedPreferences.Editor
-    ) {
+    private fun initFirstStart() {
         if (statusFirstRun) {
             for (i in Contains.predicationList.indices) {
                 val predication = Predication1(Contains.predicationList[i])
-                userDao.insertAll(predication)
+                predicationDao?.insertAll(predication)
             }
-            editor.putBoolean("firstStart", false).apply()
+            editorPreferences?.putBoolean(firstStart, false)?.apply()
         }
     }
 
-    private fun checkNullSizeList(userDao: PredicationDao, editor: SharedPreferences.Editor) {
-        if (userDao.getAll().size < 3) {
-            initFirstStart(userDao, true, editor)
+    private fun checkNullSizeList() {
+        if (predicationDao?.getAll()?.size!! < 3) {
+            statusFirstRun = true
+            initFirstStart()
 
         }
     }
@@ -65,18 +66,16 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
             count = 1
             predicationImageView1?.visibility = View.VISIBLE
             countTextView?.text = count.toString()
-            plusTextView?.visibility=View.INVISIBLE
+            plusTextView?.visibility = View.INVISIBLE
         }
     }
 
-    fun loadAd() {
+    private fun loadAd() {
         if (rewardedInterstitialAd == null) {
             val adRequest = AdManagerAdRequest.Builder().build()
-
-            // Load an ad.
             RewardedInterstitialAd.load(
                 this,
-                "ca-app-pub-3940256099942544/5354046379",
+                rewardAdsId,
                 adRequest,
                 object : RewardedInterstitialAdLoadCallback() {
                     override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -92,140 +91,142 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
         }
     }
 
-    private fun showAdsDialog() {
-        showAdNow()
-    }
-
-    private fun showAdNow() {
-        rewardedInterstitialAd!!.show(this@MainActivity, this@MainActivity)
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        setContentView(R.layout.activity_main)
-
-
-
-
-        MobileAds.initialize(this) { initializationStatus -> loadAd() }
+    private fun init() {
+        countTextView = findViewById(R.id.countTextView)
+        countTextView?.text = count.toString()
+        plusTextView = findViewById(R.id.plus_text_view)
+        predicationImageView1 = findViewById(R.id.predictionImageView1)
+        predicationImageView2 = findViewById(R.id.predictionImageView2)
+        predicationImageView3 = findViewById(R.id.predictionImageView3)
         mAdView = findViewById(R.id.adView)
+    }
+
+    private fun initSharedPrefs() {
+        sharedPreferences = getSharedPreferences(preferenceName, Context.MODE_PRIVATE)
+        editorPreferences = sharedPreferences?.edit()
+    }
+
+    private fun initAds() {
+        MobileAds.initialize(this) { loadAd() }
+    }
+
+    private fun setFullScreen() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+    }
+
+    private fun loadHomeBanner() {
         val adRequestBanner = AdRequest.Builder().build()
         mAdView.loadAd(adRequestBanner)
-        val sharedPreference = getSharedPreferences("PREFERENCE_NAME", Context.MODE_PRIVATE)
-        var editor = sharedPreference.edit()
+    }
+
+    private fun loadDb() {
         val db: AppDataBase? = App.instance?.getDatabase()
-        val userDao: PredicationDao = db!!.predicationDao()
-        statusFirstRun = sharedPreference.getBoolean("firstStart", true)
-      //  count = sharedPreference.getInt("count", 3)
-Log.d("counter", count.toString())
+        predicationDao = db!!.predicationDao()
+    }
 
-        initFirstStart(userDao, statusFirstRun, editor)
-        var adRequest = AdRequest.Builder().build()
+    private fun checkFirstStartFlag() {
+        statusFirstRun = sharedPreferences!!.getBoolean(firstStart, true)
+        initFirstStart()
+    }
 
-        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", adRequest, object : InterstitialAdLoadCallback() {
-            override fun onAdFailedToLoad(adError: LoadAdError) {
-                Log.d(TAG, adError?.message)
-                mInterstitialAd = null
-            }
-
-            override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                Log.d(TAG, "Ad was loaded.")
-                mInterstitialAd = interstitialAd
-            }
-        })
-
-
-        countTextView = findViewById(R.id.countTextView)
-        plusTextView = findViewById(R.id.plus_text_view)
-        countTextView?.text = count.toString()
-        plusTextView ?.setOnClickListener {
+    private fun setListeners() {
+        plusTextView?.setOnClickListener {
             rewardedInterstitialAd?.show(this) {
                 checkNullCount()
             }
         }
-
-
-        predicationImageView1 = findViewById(R.id.predictionImageView1)
         predicationImageView1?.setOnClickListener {
-            createAlertDialog(userDao, editor)
+            createAlertDialog()
             count--
             countTextView?.text = count.toString()
             predicationImageView1?.visibility = View.INVISIBLE
-            if(count==0){
-                plusTextView?.visibility = View.VISIBLE
-            }
+            showPlusTextView()
 
         }
-        predicationImageView2 = findViewById(R.id.predictionImageView2)
+
         predicationImageView2?.setOnClickListener {
-            createAlertDialog(userDao, editor)
+            createAlertDialog()
             count--
             countTextView?.text = count.toString()
             predicationImageView2?.visibility = View.INVISIBLE
-            if(count==0){
-                plusTextView?.visibility = View.VISIBLE
-            }
+            showPlusTextView()
 
         }
-        predicationImageView3 = findViewById(R.id.predictionImageView3)
+
         predicationImageView3?.setOnClickListener {
-            createAlertDialog(userDao, editor)
+            createAlertDialog()
             count--
             countTextView?.text = count.toString()
             predicationImageView3?.visibility = View.INVISIBLE
-            if(count==0){
-                plusTextView?.visibility = View.VISIBLE
-            }
+            showPlusTextView()
+        }
+    }
 
-        }
-        if (count == 2) {
-            predicationImageView1?.visibility = View.INVISIBLE
-        }
-        if (count == 1) {
-            predicationImageView1?.visibility = View.INVISIBLE
-            predicationImageView2?.visibility = View.INVISIBLE
-            predicationImageView3?.visibility = View.VISIBLE
-        }
+    private fun interestingLoadAds() {
+        var adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(
+            this,
+            interestingAdsId,
+            adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    mInterstitialAd = null
+                }
+
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    mInterstitialAd = interstitialAd
+                }
+            })
+    }
+
+    private fun showPlusTextView() {
         if (count == 0) {
-            predicationImageView1?.visibility = View.INVISIBLE
-            predicationImageView2?.visibility = View.INVISIBLE
-            predicationImageView3?.visibility = View.INVISIBLE
             plusTextView?.visibility = View.VISIBLE
         }
     }
 
-    private fun createAlertDialog(userDao: PredicationDao, editor: SharedPreferences.Editor) {
-        var size = userDao.getAll().size
-        val rnds = (0 until size).random() // generated random from 0 to 10 included
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setFullScreen()
+        setContentView(R.layout.activity_main)
+        init()
+        initSharedPrefs()
+        initAds()
+        loadHomeBanner()
+        loadDb()
+        checkFirstStartFlag()
+        setListeners()
+        interestingLoadAds()
+    }
+
+    private fun showAdsInteresting() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd?.show(this)
+        } else {
+            Log.d("TAG", "The interstitial ad wasn't ready yet.")
+        }
+    }
+
+    private fun createAlertDialog() {
+        var size = predicationDao?.getAll()?.size
+        val random = (0 until size!!).random()
         var id = 0
-        checkNullSizeList(userDao, editor)
+        checkNullSizeList()
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Предсказание на сегодня")
-        builder.setMessage(userDao.getAll()[rnds].predicationText)
-        id = userDao.getAll()[rnds].uid
+        builder.setTitle(getString(R.string.home_text))
+        builder.setMessage(predicationDao!!.getAll()[random].predicationText)
+        id = predicationDao!!.getAll()[random].uid
         builder.setNegativeButton(android.R.string.no) { dialog, which ->
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(this)
-            } else {
-                Log.d("TAG", "The interstitial ad wasn't ready yet.")
-            }
+            showAdsInteresting()
         }
         builder.setOnCancelListener {
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(this)
-            } else {
-                Log.d("TAG", "The interstitial ad wasn't ready yet.")
-            }
+            showAdsInteresting()
         }
-        userDao.deleteById(id)
+        predicationDao!!.deleteById(id)
         builder.show()
     }
 
@@ -237,7 +238,7 @@ Log.d("counter", count.toString())
         if (count == 0) {
             count = 1
             predicationImageView1?.visibility = View.VISIBLE
-            plusTextView?.visibility=View.INVISIBLE
+            plusTextView?.visibility = View.INVISIBLE
         }
     }
 }
