@@ -13,19 +13,11 @@ interface PredicationDao {
     @Query("SELECT * FROM predication")
     fun getAll(): List<Predication>
 
-
-//    @Query("SELECT * FROM predication WHERE uid IN (:userIds)")
-//    fun loadAllByIds(userIds: IntArray): List<Predication>
-
-//    @Query("SELECT * FROM user WHERE first_name LIKE :first AND " +
-//            "last_name LIKE :last LIMIT 1")
-//    fun findByName(first: String, last: String): Predication
-
     @Insert
-    fun insertAll(vararg users: Predication)
+    fun insertAll(vararg predication: Predication)
 
     @Delete
-    fun delete(user: Predication)
+    fun delete(predication: Predication)
 
     @Query("DELETE FROM predication WHERE uid = :id")
     fun deleteById(id: Int)

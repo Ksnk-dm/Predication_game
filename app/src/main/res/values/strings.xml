@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Печенья с предсказаниями</string>
     <string name="home_text">Предсказание на сегодня</string>
+    <string name="close">Понял</string>
 </resources>

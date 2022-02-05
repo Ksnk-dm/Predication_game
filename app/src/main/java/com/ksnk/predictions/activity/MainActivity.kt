@@ -1,4 +1,4 @@
-package com.ksnk.predictions
+package com.ksnk.predictions.activity
 
 
 import android.content.Context
@@ -19,6 +19,10 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardItem
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
+import com.ksnk.predictions.Contains
+import com.ksnk.predictions.R
+import com.ksnk.predictions.base.App
+import com.ksnk.predictions.base.AppDataBase
 import com.ksnk.predictions.dao.PredicationDao
 import com.ksnk.predictions.entity.Predication as Predication1
 
@@ -40,8 +44,22 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
     lateinit var mAdView: AdView
     private var statusFirstRun = true
     private var predicationDao: PredicationDao? = null
-
     private var rewardedInterstitialAd: RewardedInterstitialAd? = null
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setFullScreen()
+        setContentView(R.layout.activity_main)
+        init()
+        initSharedPrefs()
+        initAds()
+        loadHomeBanner()
+        loadDb()
+        checkFirstStartFlag()
+        setListeners()
+        interestingLoadAds()
+    }
 
     private fun initFirstStart() {
         if (statusFirstRun) {
@@ -189,20 +207,6 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setFullScreen()
-        setContentView(R.layout.activity_main)
-        init()
-        initSharedPrefs()
-        initAds()
-        loadHomeBanner()
-        loadDb()
-        checkFirstStartFlag()
-        setListeners()
-        interestingLoadAds()
-    }
-
     private fun showAdsInteresting() {
         if (mInterstitialAd != null) {
             mInterstitialAd?.show(this)
@@ -220,7 +224,7 @@ class MainActivity : AppCompatActivity(), OnUserEarnedRewardListener {
         builder.setTitle(getString(R.string.home_text))
         builder.setMessage(predicationDao!!.getAll()[random].predicationText)
         id = predicationDao!!.getAll()[random].uid
-        builder.setNegativeButton(android.R.string.no) { dialog, which ->
+        builder.setNegativeButton(getString(R.string.close)) { dialog, which ->
             showAdsInteresting()
         }
         builder.setOnCancelListener {

@@ -1,4 +1,4 @@
-package com.ksnk.predictions
+package com.ksnk.predictions.base
 
 import androidx.room.Room
 
